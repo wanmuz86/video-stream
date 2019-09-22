@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+
+    <script src="http://webrtc.github.io/adapter/adapter-latest.js"></script>
+    <script src="js/webrtc_adaptor.js" ></script>
+</head>
+<body>
+    <video id="vid" muted autoplay></video>
+    <script
+    src="https://code.jquery.com/jquery-3.4.1.js"
+    integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
+    crossorigin="anonymous"></script>
+    <script type="text/javascript">
+       $(function () {
+        video = document.getElementById('vid');
+        video.style.width = document.width + 'px';
+        video.style.height = document.height + 'px';
+        video.setAttribute('autoplay', '');
+        video.setAttribute('muted', '');
+        video.setAttribute('playsinline', '');
+
+        var constraints = {
+           audio: false,
+           video: {
+               facingMode: 'user'
+           }
+       }
+       
+       var mediaConstraints = {
+        video: {
+          width: {
+            min: 360,
+            ideal: 360,
+            max: 360
+        },
+        height: {
+            min: 640,
+            ideal: 640,
+            max: 640
+        }
+    },
+    audio: {
+      echoCancellation: true
+  }
+};
+
+navigator.mediaDevices.getUserMedia(constraints).then(function success(stream) {
+     video = document.getElementById('vid');
+     console.log(video)
+     console.log(stream)
+    video.srcObject = stream;
+
+    var sdpConstraints = {
+        OfferToReceiveAudio: false,
+        OfferToReceiveVideo: false
+    };
+
+
+    var webRTCAdaptor = new WebRTCAdaptor({
+        websocket_url : "ws://3.0.100.16:5080/WebRTCApp/websocket",
+        mediaConstraints : mediaConstraints,
+        peerconnection_config : null,
+        sdp_constraints : sdpConstraints,
+        localVideoId : "vid",
+        debug:true,
+        callback : function(info,description) {
+            if (info == "initialized") 
+            {
+                console.log("initialized");
+                webRTCAdaptor.publish("276216207268369364261950");
+                 
+            } 
+            else if (info == "publish_started") 
+            {
+                //stream is being published 
+                console.log("publish started"); 
+            } 
+            else if (info == "publish_finished") 
+            {
+                //stream is finished
+                console.log("publish finished");
+            } 
+            else if (info == "screen_share_extension_available") 
+            {
+                                //screen share extension is avaiable
+                                console.log("screen share extension available");
+                            } 
+                            else if (info == "screen_share_stopped") 
+                            {
+                                 //"Stop Sharing" is clicked in chrome screen share dialog
+                                 console.log("screen share stopped");
+                             }
+
+                         },
+                         callbackError : function(error,message) {
+            //some of the possible errors, NotFoundError, SecurityError,PermissionDeniedError
+
+            console.log("error callback: " + error);
+            console.log("message" + message)
+            // alert(error);
+        }
+    });
+});
+
+});
+</script>
+</body>
+</html>
